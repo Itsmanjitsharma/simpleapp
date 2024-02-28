@@ -22,7 +22,7 @@ pipeline{
             steps{
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/Itsmanjitsharma/simpleapp'
             }
-        }/*
+        }
         stage("Build Application"){
             steps{
                 sh "mvn clean package"
@@ -33,7 +33,7 @@ pipeline{
                     sh "mvn test"
                 }
         }
-        stage("Build & Push Docker Image"){
+        /*stage("Build & Push Docker Image"){
              steps{
                 script{
                     docker.withRegistry('',DOCKER_PASS){
