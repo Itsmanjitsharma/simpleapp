@@ -36,13 +36,15 @@ pipeline{
         stage("Build & Push Docker Image"){
              steps{
                 script{
-                    docker.withRegistry('',DOCKER_PASS){
+                    sh 'docker buildx create --use'
+                    /*docker.withRegistry('',DOCKER_PASS){
                         docker_image = docker.build "${IMAGE_NAME}"
                     }
                     docker.withRegistry('',DOCKER_PASS){
                         docker_image.push("${IMAGE_TAG}")
                         docker_image.push('latest')
-                    }
+                    }*/
+                    sh "docker buildx build --platform linux/amd64,linux/arm64 -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest . --push"
                 }
              }
         }
