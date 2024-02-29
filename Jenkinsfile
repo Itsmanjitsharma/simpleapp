@@ -1,75 +1,66 @@
-pipeline{
-    agent{label 'jenkin-agent'}
-    tools{
+pipeline {
+    agent { label 'jenkin-agent' }
+    
+    tools {
         jdk 'Java17'
         maven 'Maven3'
     }
-    environment{
+    
+    environment {
         PATH = "/usr/local/bin:${PATH}"
         APP_NAME = "simpleapp"
         RELEASE = "1.0.0"
         DOCKER_USER = "itsmanjitsharma132"
-        //DOCKER_PASS = "dockerhub"
         DOCKER_PASS = credentials('dockerhub')
-        IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}" 
         DOCKER_BUILDKIT = '1'
     }
-    stages{
-        stage("Cleanup Workspace"){
-            steps{
-               cleanWs()
+    
+    stages {
+        stage("Cleanup Workspace") {
+            steps {
+                cleanWs()
             }
         }
-        stage("Checkout from SCM"){
-            steps{
+        
+        stage("Checkout from SCM") {
+            steps {
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/Itsmanjitsharma/simpleapp'
             }
         }
-        stage("Build Application"){
-            steps{
+        
+        stage("Build Application") {
+            steps {
                 sh "mvn clean package"
             }
         }
-        stage("Test Application"){
-                steps{
-                    sh "mvn test"
-                }
+        
+        stage("Test Application") {
+            steps {
+                sh "mvn test"
+            }
         }
+        
         stage("Check Docker Version") {
-         steps {
-            sh "docker --version"
-          }
+            steps {
+                sh "docker --version"
+            }
         }
-        /*stage("Build & Push Docker Image"){
-             steps{
-                /*script{
-                    sh 'docker buildx create --use'
-                    docker.withRegistry('',DOCKER_PASS){
-                        docker_image = docker.build "${IMAGE_NAME}"
-                    }
-                    docker.withRegistry('',DOCKER_PASS){
-                        docker_image.push("${IMAGE_TAG}")
-                        docker_image.push('latest')
-                    }                    sh "docker buildx build --platform linux/amd64,linux/arm64 -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest . --push"
-                }*/
+        
+        stage("Build & Push Docker Image") {
+            steps {
                 script {
-                    sh 'docker buildx create --use'
+                    /*sh 'docker buildx create --use'
                     docker.withRegistry('https://index.docker.io/v1/', DOCKER_PASS) {
                         sh "docker buildx build --platform linux/amd64,linux/arm64 -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest . --push"
-                    }
+                    }*/
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+                    sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                    sh "docker push ${IMAGE_NAME}:latest"
                 }
-             }*/
-             stage("Build & Push Docker Image") {
-    steps {
-        script {
-            sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
-            sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
-            sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-            sh "docker push ${IMAGE_NAME}:latest"
-        }
-    }
-
+            }
         }
     }
 }
