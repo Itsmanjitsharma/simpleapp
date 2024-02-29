@@ -5,6 +5,7 @@ pipeline{
         maven 'Maven3'
     }
     environment{
+        PATH = "/usr/local/bin:${PATH}"
         APP_NAME = "simpleapp"
         RELEASE = "1.0.0"
         DOCKER_USER = "itsmanjitsharma132"
@@ -35,7 +36,12 @@ pipeline{
                     sh "mvn test"
                 }
         }
-        stage("Build & Push Docker Image"){
+        stage("Check Docker Version") {
+         steps {
+            sh "docker --version"
+          }
+        }
+        /*stage("Build & Push Docker Image"){
              steps{
                 /*script{
                     sh 'docker buildx create --use'
@@ -53,7 +59,17 @@ pipeline{
                         sh "docker buildx build --platform linux/amd64,linux/arm64 -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest . --push"
                     }
                 }
-             }
+             }*/
+             stage("Build & Push Docker Image") {
+    steps {
+        script {
+            sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+            sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+            sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+            sh "docker push ${IMAGE_NAME}:latest"
+        }
+    }
+
         }
     }
 }
