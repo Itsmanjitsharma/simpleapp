@@ -61,10 +61,11 @@ pipeline {
         stage("Build & Push Docker Image") {
     steps {
         script {
-            sh 'docker buildx create --use'
+            sh '/usr/local/bin/buildx create --use'
             docker.withRegistry('https://index.docker.io/v1/', DOCKER_PASS) {
-                sh "docker buildx build --platform linux/amd64,linux/arm64 -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest . --push"
-            }
+                sh "/usr/local/bin/buildx build --platform linux/amd64,linux/arm64 -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest . --push"
+            
+             }
         }
     }
 }
